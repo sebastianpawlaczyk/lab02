@@ -48,6 +48,10 @@ def sort_train_labels_knn(Dist, y):
     wartosci podobienstw odpowiadajacego wiersza macierzy
     Dist. Uzyc algorytmu mergesort.
     """
+
+    u = np.matrix('4,5,2; 1,1,1')
+    print(np.argsort(u,kind="mergesort"))   #sort and get positions in matrix
+    return y[np.argsort(Dist,kind='mergesort')] #take values froms y depends on position in Dist
     pass
 
 
