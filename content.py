@@ -24,11 +24,10 @@ def hamming_distance(X, X_train):
     x_trainT = np.transpose(X_train.toarray()).astype(int) #we transpose to change 50,20 -> 20,50
     how_many_pos = x.shape[1]
 
-    ham_dis1 = np.dot(x,x_trainT) #for all 1
+    ham_dis1 = np.dot(x,x_trainT) #how many places EQ 1 the same
     ham_dis2 = how_many_pos - ham_dis1;
-    ham_dis3 = np.dot((1-x),(1-x_trainT)) #for all 0
+    ham_dis3 = np.dot((1-x),(1-x_trainT)) #how many places EQ 0 the same
     ham_dis = ham_dis2 - ham_dis3
-
     return ham_dis
     pass
 
@@ -64,6 +63,19 @@ def p_y_x_knn(y, k):
     :param k: liczba najblizszuch sasiadow dla KNN
     :return: macierz prawdopodobienstw dla obiektow z X
     """
+    resized = np.delete(y, range(k,y.shape[1]), axis=1) #we take k nearest neighbours removing colums from 5 to 49
+
+    bin = np.bincount(resized[0], None, k)
+    bin2 = np.bincount(resized[1], None, k)
+    resultMatrix = np.vstack((bin,bin2))
+
+    for x in range(2,y.shape[0]):             #how many times for category 0 1 2 3 4
+        bin = np.bincount(resized[x],None,k)
+        resultMatrix = np.vstack([resultMatrix,bin])
+
+    resultMatrix = np.delete(resultMatrix,0,axis=1) #remove column 0, because we dont have category 0
+    print(resultMatrix/k)
+    return resultMatrix/k
     pass
 
 
