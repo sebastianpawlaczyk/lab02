@@ -23,11 +23,11 @@ def hamming_distance(X, X_train):
     x = X.toarray().astype(int) #we have to change boolean matrix to int array 1/0
     x_trainT = np.transpose(X_train.toarray()).astype(int) #we transpose to change 50,20 -> 20,50
     how_many_pos = x.shape[1]
-
     ham_dis1 = np.dot(x,x_trainT) #how many places EQ 1 the same
     ham_dis2 = how_many_pos - ham_dis1;
     ham_dis3 = np.dot((1-x),(1-x_trainT)) #how many places EQ 0 the same
     ham_dis = ham_dis2 - ham_dis3
+    #print(ham_dis1)
     return ham_dis
     pass
 
@@ -48,8 +48,8 @@ def sort_train_labels_knn(Dist, y):
     Dist. Uzyc algorytmu mergesort.
     """
 
-    u = np.matrix('4,5,2; 1,1,1')
-    print(np.argsort(u,kind="mergesort"))   #sort and get positions in matrix
+    #print(np.argsort(u,kind="mergesort"))#sort and get positions in matrix
+
     return y[np.argsort(Dist,kind='mergesort')] #take values froms y depends on position in Dist
     pass
 
@@ -63,19 +63,30 @@ def p_y_x_knn(y, k):
     :param k: liczba najblizszuch sasiadow dla KNN
     :return: macierz prawdopodobienstw dla obiektow z X
     """
-    resized = np.delete(y, range(k,y.shape[1]), axis=1) #we take k nearest neighbours removing colums from 5 to 49
+    # resized = np.delete(y, range(k,y.shape[1]), axis=1) #we take k nearest neighbours removing colums from 5 to 49
+    #
+    #
+    # bin = np.bincount(resized[0], None, k)
+    # bin2 = np.bincount(resized[1], None, k)
+    # resultMatrix = np.vstack((bin,bin2))
+    #
+    #
+    # for x in range(2,y.shape[0]):             #how many times for category 0 1 2 3 4
+    #     bin = np.bincount(resized[x],None,k)
+    #     resultMatrix = np.vstack([resultMatrix,bin])
+    #
+    # resultMatrix = np.delete(resultMatrix,0,axis=1) #remove column 0, because we dont have category 0
+    #
+    # return resultMatrix/k
 
-    bin = np.bincount(resized[0], None, k)
-    bin2 = np.bincount(resized[1], None, k)
-    resultMatrix = np.vstack((bin,bin2))
+    number_of_classes = 4
+    resized = np.delete(y, range(k, y.shape[1]), axis=1)
+    summed_with_zero = np.vstack(np.apply_along_axis(np.bincount, axis=1, arr=resized, minlength=number_of_classes + 1))
+    summed = np.delete(summed_with_zero, 0, axis=1)
 
-    for x in range(2,y.shape[0]):             #how many times for category 0 1 2 3 4
-        bin = np.bincount(resized[x],None,k)
-        resultMatrix = np.vstack([resultMatrix,bin])
 
-    resultMatrix = np.delete(resultMatrix,0,axis=1) #remove column 0, because we dont have category 0
-    print(resultMatrix/k)
-    return resultMatrix/k
+    return summed / k
+
     pass
 
 
@@ -87,6 +98,13 @@ def classification_error(p_y_x, y_true):
     Kazdy wiersz macierzy reprezentuje rozklad p(y|x)
     :return: blad klasyfikacji
     """
+
+    number_of_classes = p_y_x.shape[1]
+    reversed_rows = np.fliplr(p_y_x)
+    predicted = number_of_classes - np.argmax(reversed_rows, axis=1)
+    difference = predicted - y_true
+    return np.count_nonzero(difference) / y_true.shape[0]
+
     pass
 
 
@@ -100,6 +118,23 @@ def model_selection_knn(Xval, Xtrain, yval, ytrain, k_values):
     :return: funkcja wykonuje selekcje modelu knn i zwraca krotke (best_error,best_k,errors), gdzie best_error to najnizszy
     osiagniety blad, best_k - k dla ktorego blad byl najnizszy, errors - lista wartosci bledow dla kolejnych k z k_values
     """
+
+    #first we have to get sorted labels
+    hammingDist = hamming_distance(Xval,Xtrain) #we compare orginalText with trainig values
+    sortedLabels = sort_train_labels_knn(hammingDist,ytrain)
+    #errors = list(map(lambda k: classification_error(p_y_x_knn(sortedLabels, k), yval), k_values))
+    ce = []
+    ce.append(classification_error(p_y_x_knn(sortedLabels, k_values[0]), yval))
+    ce.append(classification_error(p_y_x_knn(sortedLabels, k_values[1]), yval))
+    ce.append(classification_error(p_y_x_knn(sortedLabels, k_values[2]), yval))
+    ce.append(classification_error(p_y_x_knn(sortedLabels, k_values[3]), yval))
+    ce.append(classification_error(p_y_x_knn(sortedLabels, k_values[4]), yval))
+
+
+
+
+    return
+
     pass
 
 
